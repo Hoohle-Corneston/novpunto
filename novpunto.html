@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novpunto</title>
+    <style>
+        * {margin: 0; padding: 0; box-sizing: border-box;}
+	body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(142deg, #267177 0%, #667eea 50%, #764ba2 100%); min-height: 100vh; gap: 5px; padding: 5px; display: flex; }
+        .container {width: 50%; background: white; border-radius: 10px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; height: 99vh;}
+        .toolbar {background: #f8f9fa; padding: 8px 8px; border-bottom: 1px solid #dee2e6; display: flex;gap: 10px; flex-wrap: wrap; align-items: center;}
+        .toolbar h1 {font-size: 20px; color: #333; font-weight: 600;}
+        .info {font-size: 13px; color: #666; margin-right: auto;}
+        button {background: #667eea; color: white; border: none; padding: 10px 16px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s ease;}
+        button:hover {background: #5568d3; transform: translateY(2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);}
+        button:active {transform: translateY(0);}
+        button.danger {background: #e74c3c;}
+        button.danger:hover {background: #c0392b;}
+        button.success {background: #27ae60;}
+        button.success:hover {background: #229954;}
+        button.active {background: #f39c12; box-shadow: 0 0 15px rgba(243, 156, 18, 0.6);}
+        button.active:hover {background: #e67e22;}
+        button:disabled {background: #bdc3c7; cursor: not-allowed; transform: none;}
+        button:disabled:hover {background: #bdc3c7; box-shadow: none;}
+        textarea {flex: 1; border: none; outline: none; padding: 10px; font-family: "Arial"; font-size: 15px; resize: none; line-height: 1.5; color: #333;}
+        .status-bar {background: #f8f9fa; padding: 10px 10px; border-top: 1px solid #dee2e6; font-size: 12px; color: #666; display: flex; justify-content: space-between; align-items: center;}
+        .tabs-container {display: flex; flex-direction: column; flex: 1;}
+        .tab-buttons {display: flex; gap: 5px; padding: 10px 20px; background: #f8f9fa; border-bottom: 1px solid #dee2e6;}
+        .tab-button {background: #e9ecef; color: #333; border: none; padding: 8px 16px; border-radius: 5px 5px 0 0; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.3s ease;}
+        .tab-button:hover {background: #d1b399;}
+        .tab-button.active {background: white; color: #667eea; border-bottom: 2px solid #667eea;}
+        .tab-content {display: none; flex: 1; flex-direction: column;}
+        .tab-content.active {display: flex;}
+	input[type=file]::file-selector-button {background: #667eea; color: white; border: none; padding: 10px 16px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s ease;}
+	input[type=file]::file-selector-button:hover {background: #5568d3; transform: translateY(2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);}
+        #canvas {border: none; cursor: crosshair; flex: 1; display: block; background: #00512f;}
+        #canvas.eraser-mode {cursor: grab;}
+        iframe {border: none; flex: 1; width: 100%;}
+        .canvas-controls {display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 15px 20px; background: #f8f9fa; border-top: 1px solid #dee2e6;}
+        .color-picker { width: 50px; height: 40px; border: none; border-radius: 5px; cursor: help;}
+        .size-input {width: 60px; padding: 8px 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;}
+	.calc-input {flex: 1; width: 40%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;}
+        .size-label {font-size: 13px; color: #666;}
+        .web-controls {display: flex; gap: 10px; align-items: center; padding: 15px 20px; background: #f8f9fa; border-bottom: 1px solid #dee2e6;}
+        .url-input {flex: 1; padding: 10px 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px;}
+        .url-input:focus {outline: none; border-color: #667eea; box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);}
+        @media (max-width: 1024px) {body {flex-direction: column;}.container {width: 100%;}}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="toolbar">
+            <button class="success" onclick="downloadText()">Salva</button>
+            <input type="file" id="loadtxt" class="frfr" onchange="loadTxt(this)"></input></div>
+        <textarea id="editor" placeholder="Appunta..."></textarea>
+        <div class="status-bar"><div><span class="size-label">Calcolatrice Rapida:</span>
+		<button class="" onclick="quickCalc()">Calcola</button>
+		<input class="calc-input" id="quickcalc" type="text" value=""></input></div></div></div></div>
+	<div class="container tabs-container"><div class="tab-buttons">
+        <button class="tab-button active" onclick="switchTab('canvas')">Lavagna</button>
+	<button class="tab-button" onclick="switchTab('viewer')">Visualizzatore PDF/Video</button>
+        <button class="tab-button" onclick="switchTab('iframe')">Browser Web</button></div>
+	<div id="canvas-tab" class="tab-content active">
+            <canvas id="canvas"></canvas>
+            <div class="canvas-controls">
+                <span class="size-label">Colore:</span>
+                <input type="color" id="colorPicker" class="color-picker" value="#ffffff">
+                <span class="size-label">Misura (px):</span>
+                <input type="number" id="brushSize" class="size-input" value="2" min="1" max="150">
+                <button id="eraserBtn" onclick="toggleEraser()">Gomma</button>
+                <button class="danger" onclick="clearCanvas()">Scarta</button>
+		<button class="success" onclick="downloadCanvas()">Salva</button></div></div>
+	<div id="viewer-tab" class="tab-content">
+		<object data="" id="output" style="height:100%;width:100%;" type="application/pdf"></object>
+		<input class="frfr" type="file" accept="*" onchange="loadMedia(event)" !--hidden-- id="upload"></input></div>
+        <div id="iframe-tab" class="tab-content">
+            <div class="web-controls">
+                <button id="backBtn" onclick="goBack()" title="Indietro">⮜</button>
+                <button id="forwardBtn" onclick="goForward()" title="Avanti">⮞</button>
+                <input type="text" id="urlInput" class="url-input" placeholder="Inserisci URL..." value="https://www.duckduckgo.com">
+                <button onclick="navigateToUrl()" style="background: #27ae60;">Vai</button></div>
+            <iframe id="webFrame" src="https://www.duckduckgo.com" title="Web Content"></iframe></div></div>
+
+    <script>
+        const editor = document.getElementById('editor');
+        const charCount = document.getElementById('charCount');
+        const wordCount = document.getElementById('wordCount');
+        const lineCount = document.getElementById('lineCount');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const colorPicker = document.getElementById('colorPicker');
+        const brushSize = document.getElementById('brushSize');
+        const eraserBtn = document.getElementById('eraserBtn');
+        const urlInput = document.getElementById('urlInput');
+        const backBtn = document.getElementById('backBtn');
+        const forwardBtn = document.getElementById('forwardBtn');
+        const webFrame = document.getElementById('webFrame');
+        let eraserMode = false;
+        let history = ['https://www.duckduckgo.com'];
+        let historyIndex = 0;
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-button');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');}
+	function goBack() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                loadUrl(history[historyIndex]);
+                updateNavButtons();}}
+        function goForward() {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                loadUrl(history[historyIndex]);
+                updateNavButtons();}}
+        function navigateToUrl() {
+            let url = urlInput.value.trim();
+            if (!url) return;
+	    history = history.slice(0, historyIndex + 1);
+            history.push(url);
+            historyIndex = history.length - 1;
+            loadUrl(url);
+            updateNavButtons();}
+        function loadUrl(url) {webFrame.src = url; urlInput.value = url;}
+        function updateNavButtons() {backBtn.disabled = historyIndex <= 0; forwardBtn.disabled = historyIndex >= history.length - 1;}
+        urlInput.addEventListener('keypress', (e) => {if (e.key === 'Enter') {navigateToUrl();}});
+	updateNavButtons();
+        function updateStats() {
+            const text = editor.value;
+            const chars = text.length;
+            const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+            const lines = text === '' ? 1 : text.split('\n').length;
+            charCount.textContent = chars;
+            wordCount.textContent = words;
+            lineCount.textContent = lines;}
+        function downloadText() {
+            var text = editor.value;
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', 'appunti_' + Date.now() + '.txt');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);}
+        function loadTxt(input) {
+  		const file = input.files && input.files[0];
+  		//if (!file) return;
+  		const reader = new FileReader();
+  		reader.onload = () => {
+    		const text = reader.result;
+    		const editor = document.getElementById('editor');
+    		editor.value = text + editor.value;};
+  		reader.onerror = () => {alert('Errore: ' + reader.error);}; reader.readAsText(file, 'UTF-8');}
+        editor.addEventListener('input', () => {
+            updateStats();});
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;}
+        let isDrawing = false;
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            ctx.beginPath();
+            ctx.moveTo(x, y);}
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+	if (eraserMode) {
+                ctx.clearRect(x - brushSize.value / 2, y - brushSize.value / 2, brushSize.value, brushSize.value);}
+	else {
+                ctx.lineTo(x, y);
+                ctx.strokeStyle = colorPicker.value;
+                ctx.lineWidth = brushSize.value;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.stroke();}}
+	function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();}
+        function toggleEraser(){
+            eraserMode = !eraserMode;
+            if (eraserMode){
+                eraserBtn.classList.add('active');
+                canvas.classList.add('eraser-mode');}
+	else {
+                eraserBtn.classList.remove('active');
+                canvas.classList.remove('eraser-mode');}}
+	function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);}
+        function downloadCanvas() {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'drawing_' + Date.now() + '.png';
+            link.click();}
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseleave', stopDrawing);
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        editor.focus();
+	var loadMedia = function(event) {
+		var output = document.getElementById('output');
+		output.data = URL.createObjectURL(event.target.files[0]);
+		output.onload = function() {URL.revokeObjectURL(output.data)}};
+	function quickCalc() {
+		document.getElementById('quickcalc').value = eval(document.getElementById('quickcalc').value);}
+    </script>
+</body>
+</html>
